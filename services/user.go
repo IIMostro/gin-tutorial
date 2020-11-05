@@ -54,7 +54,7 @@ func GetAllUserFromDB(connection *sql.DB) []Student {
 			Name: name,
 			Age:  age,
 		}
-		_ = append(students, student)
+		students = append(students, student)
 	}
 
 	return students
