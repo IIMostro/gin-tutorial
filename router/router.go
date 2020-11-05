@@ -37,12 +37,12 @@ func InitRouter(engine *gin.Engine) {
 	})
 
 	v1.GET("/db", func(context *gin.Context) {
-		connection := configuration.GetConnection()
+		connection, _ := configuration.GetConnection()
 		students := services.GetAllUserFromDB(connection)
 		context.JSON(200, gin.H{
 			"students": students,
 		})
-		connection.Close()
+		_ = connection.Close()
 	})
 	//for _, student := range students{
 	//	log.Printf("get database user: id:%d, name:%s, age:%d", student.Id, student.Name, student.Age)
