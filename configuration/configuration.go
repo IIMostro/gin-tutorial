@@ -13,11 +13,15 @@ type Properties struct {
 	}
 
 	Database struct {
-		Type         string
 		Server       string
-		Name         string
+		Port         int
+		User         string
 		Password     string
 		DatabaseName string `yaml:"database-name" `
+		Pool         struct {
+			MaxConnection     int `yaml:"max-connection"`
+			MaxIdleConnection int `yaml:"max-idle-connection"`
+		}
 	}
 }
 

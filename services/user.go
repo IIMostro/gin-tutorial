@@ -1,7 +1,9 @@
 package services
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 )
 
 type Person interface {
@@ -11,17 +13,49 @@ type Person interface {
 }
 
 type Student struct {
+	Id int
+
 	Name string
 
 	Age int
 }
 
 func (s Student) Eat() string {
-	result := fmt.Sprintf("user name: %s, age: %d, eating", s.Name, s.Age)
+	result := fmt.Sprintf("user id:%d, name: %s, age: %d, eating", s.Id, s.Name, s.Age)
 	return result
 }
 
 func (s Student) Run() string {
-	result := fmt.Sprintf("user name: %s, age: %d, running", s.Name, s.Age)
+	result := fmt.Sprintf("user id:%d, name: %s, age: %d, running", s.Id, s.Name, s.Age)
 	return result
+}
+
+func GetAllUserFromDB(connection *sql.DB) []Student {
+
+	sql := "select id, `name`, age from user"
+	result, err := connection.Query(sql)
+	if err != nil {
+		log.Fatalf("query user error!, cause:%v", err)
+	}
+
+	var students []Student
+
+	for result.Next() {
+		var id, age int
+		var name string
+
+		err := result.Scan(&id, &name, &age)
+		if err != nil {
+			log.Printf("result scan rows error!, cause: %v", err)
+			continue
+		}
+		student := Student{
+			Id:   id,
+			Name: name,
+			Age:  age,
+		}
+		_ = append(students, student)
+	}
+
+	return students
 }

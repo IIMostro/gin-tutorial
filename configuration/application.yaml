@@ -3,9 +3,12 @@ server:
   mode: release
 
 database:
-  type: 'mysql'
   server: '192.168.120.20'
-  name: 'root'
+  port: 3306
+  user: 'root'
   password: '123456'
   database-name: 'matomo'
+  pool:
+    max-connection: 10
+    max-idle-connection: 5
 
