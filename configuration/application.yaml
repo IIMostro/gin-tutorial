@@ -1,0 +1,11 @@
+server:
+  port: ':8081'
+  mode: release
+
+database:
+  type: 'mysql'
+  server: '192.168.120.20'
+  name: 'root'
+  password: '123456'
+  database-name: 'matomo'
+
