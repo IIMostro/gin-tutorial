@@ -1,7 +1,6 @@
-package services
+package repository
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 )
@@ -13,6 +12,8 @@ type Person interface {
 }
 
 type Student struct {
+	Model
+
 	Id int
 
 	Name string
@@ -30,10 +31,10 @@ func (s Student) Run() string {
 	return result
 }
 
-func GetAllUserFromDB(connection *sql.DB) []Student {
+func GetAllUserFromDB() []Student {
 
 	sql := "select id, `name`, age from user"
-	result, err := connection.Query(sql)
+	result, err := Connection.Query(sql)
 	if err != nil {
 		log.Fatalf("query user error!, cause:%v", err)
 	}

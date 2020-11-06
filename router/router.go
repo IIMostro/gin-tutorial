@@ -2,9 +2,9 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"ilmostro.org/gin-tutorial/repository"
 )
 import "ilmostro.org/gin-tutorial/configuration"
-import "ilmostro.org/gin-tutorial/services"
 
 func InitRouter(engine *gin.Engine) {
 
@@ -24,8 +24,8 @@ func InitRouter(engine *gin.Engine) {
 		})
 	})
 
-	person := services.Student{Id: 1, Name: "ilmsotro", Age: 18}
-	person1 := new(services.Student)
+	person := repository.Student{Id: 1, Name: "ilmsotro", Age: 18}
+	person1 := new(repository.Student)
 	person1.Id = 1
 	person1.Age = 1
 	person1.Name = "ilmostro"
@@ -37,12 +37,10 @@ func InitRouter(engine *gin.Engine) {
 	})
 
 	v1.GET("/db", func(context *gin.Context) {
-		connection := configuration.GetConnection()
-		students := services.GetAllUserFromDB(connection)
+		students := repository.GetAllUserFromDB()
 		context.JSON(200, gin.H{
 			"students": students,
 		})
-		connection.Close()
 	})
 	//for _, student := range students{
 	//	log.Printf("get database user: id:%d, name:%s, age:%d", student.Id, student.Name, student.Age)
