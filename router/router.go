@@ -2,12 +2,11 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"ilmostro.org/gin-tutorial/configuration"
 	"ilmostro.org/gin-tutorial/repository"
 )
-import "ilmostro.org/gin-tutorial/configuration"
 
 func InitRouter(engine *gin.Engine) {
-
 	v1 := engine.Group("/v1")
 
 	v1.GET("/", func(context *gin.Context) {
@@ -42,7 +41,4 @@ func InitRouter(engine *gin.Engine) {
 			"students": students,
 		})
 	})
-	//for _, student := range students{
-	//	log.Printf("get database user: id:%d, name:%s, age:%d", student.Id, student.Name, student.Age)
-	//}
 }
