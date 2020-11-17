@@ -36,7 +36,8 @@ func GetAllUserFromDB() []Student {
 	sql := "select id, `name`, age from user"
 	result, err := Connection.Query(sql)
 	if err != nil {
-		log.Fatalf("query user error!, cause:%v", err)
+		log.Printf("query user error!, cause:%v", err)
+		return nil
 	}
 
 	var students []Student
