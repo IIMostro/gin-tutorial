@@ -8,11 +8,11 @@ import (
 var Connection *sql.DB
 
 type Model struct {
-	Id int
+	Id int `json:"id"`
 
-	CreatedOn int
+	CreatedOn int `json:"create_on"`
 }
 
 func Setup() {
-	Connection = configuration.GetConnection()
+	Connection, _ = configuration.GetConnection()
 }
