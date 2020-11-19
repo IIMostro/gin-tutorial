@@ -1,25 +1,36 @@
 package configuration
 
 import (
-	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
 	"log"
 )
 
-func GetConnection() (*sql.DB, error) {
+var Connection *gorm.DB
 
-	properties := GetProperties().Database
-	connectionUrl := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", properties.User, properties.Password,
-		properties.Server, properties.Port, properties.DatabaseName)
-	connection, err := sql.Open("mysql", connectionUrl)
+func getConnection() (*gorm.DB, error) {
+
+	connectionUrl := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", Properties.Database.User, Properties.Database.Password,
+		Properties.Database.Server, Properties.Database.Port, Properties.Database.DatabaseName)
+
+	log.Printf("get connection url: %s", connectionUrl)
+
+	open, err := gorm.Open("mysql", connectionUrl)
 	if err != nil {
-		log.Printf("get mysql connection error!, cause:#%v", err)
 		return nil, err
 	}
+	open.DB().SetMaxIdleConns(Properties.Database.Pool.MaxIdleConnection)
+	open.DB().SetMaxOpenConns(Properties.Database.Pool.MaxConnection)
 
-	connection.SetMaxOpenConns(properties.Pool.MaxConnection)
-	connection.SetMaxIdleConns(properties.Pool.MaxIdleConnection)
+	return open, nil
+}
 
-	return connection, nil
+func init() {
+	conn, err := getConnection()
+	if err != nil {
+		log.Fatalf("get database connection error, %f", err)
+	}
+
+	Connection = conn
 }

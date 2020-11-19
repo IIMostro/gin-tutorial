@@ -2,16 +2,23 @@ package repository
 
 import (
 	"fmt"
-	"log"
-	"time"
+	"ilmostro.org/gin-tutorial/configuration"
 )
 
+var connection = configuration.Connection
+
 type Student struct {
-	Model
+	Id int `json:"id" gorm:"AUTO_INCREMENT"`
 
 	Name string `json:"name"`
 
 	Age int `json:"age"`
+
+	CreateTime string
+}
+
+func (Student) TableName() string {
+	return "user"
 }
 
 func (s Student) Eat() string {
@@ -24,62 +31,22 @@ func (s Student) Run() string {
 	return result
 }
 
+func init() {
+	table := connection.HasTable("user")
+	if !table {
+		connection.CreateTable(&Student{})
+		connection.Set("gorm:table_options", "ENGINE=InnoDB").CreateTable(&Student{})
+	}
+}
+
 func GetAllUserFromDB() []Student {
-
-	sql := "select id, `name`, age from user"
-	result, err := Connection.Query(sql)
-	if err != nil {
-		log.Printf("query user error!, cause:%v", err)
-		return nil
-	}
-
-	var students []Student
-
-	for result.Next() {
-		var id, age int
-		var name string
-
-		err := result.Scan(&id, &name, &age)
-		if err != nil {
-			log.Printf("result scan rows error!, cause: %v", err)
-			continue
-		}
-		model := Model{Id: id, CreatedOn: time.Now().Nanosecond()}
-		student := Student{
-			Name: name,
-			Age:  age,
-		}
-		student.Model = model
-		students = append(students, student)
-	}
-
-	return students
+	var users []Student
+	connection.Select("id, name, age, create_time").Find(&users)
+	return users
 }
 
 func GetStudentById(Id string) Student {
-
-	sql := fmt.Sprintf("select id, `name`, age from user where id = %s", Id)
-	result, err := Connection.Query(sql)
-	if err != nil {
-		log.Printf("query user error!, cause:%v", err)
-		return Student{}
-	}
-
-	var id, age int
-	var name string
-	for result.Next() {
-		err = result.Scan(&id, &name, &age)
-		if err != nil {
-			return Student{}
-		}
-	}
-
-	model := Model{Id: id, CreatedOn: time.Now().Nanosecond()}
-	student := Student{
-		Name: name,
-		Age:  age,
-	}
-	student.Model = model
-
+	student := Student{}
+	connection.Where("id = ?", Id).First(&student)
 	return student
 }

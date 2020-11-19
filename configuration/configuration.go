@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-type Properties struct {
+type ApplicationProperties struct {
 	Server struct {
 		Port string
 		Mode string
@@ -25,8 +25,10 @@ type Properties struct {
 	}
 }
 
-func GetProperties() *Properties {
-	properties := new(Properties)
+var Properties *ApplicationProperties
+
+func getProperties() *ApplicationProperties {
+	properties := new(ApplicationProperties)
 	file, err := ioutil.ReadFile("./configuration/application.yaml")
 	if err != nil {
 		log.Fatalf("read yaml error!, #%v", err)
@@ -37,4 +39,9 @@ func GetProperties() *Properties {
 	}
 
 	return properties
+}
+
+func init() {
+	properties := getProperties()
+	Properties = properties
 }

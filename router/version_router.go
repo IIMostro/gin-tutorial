@@ -6,6 +6,8 @@ import (
 	"ilmostro.org/gin-tutorial/result"
 )
 
+var properties = configuration.Properties
+
 func InitRouter(engine *gin.Engine) {
 
 	v1 := engine.Group("/v1")
@@ -13,7 +15,6 @@ func InitRouter(engine *gin.Engine) {
 		context.JSON(200, result.Success("Hello World!"))
 	})
 	v1.GET("/properties", func(context *gin.Context) {
-		properties := configuration.GetProperties()
 		context.JSON(200, result.Success(properties))
 	})
 	UserInit(v1)
