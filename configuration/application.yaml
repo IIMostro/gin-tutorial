@@ -3,7 +3,7 @@ server:
   mode: release
 
 database:
-  server: '192.168.120.20'
+  server: '192.168.205.20'
   port: 3306
   user: 'root'
   password: '123456'
@@ -12,15 +12,15 @@ database:
     max-connection: 10
     max-idle-connection: 5
 redis:
-  host: '127.0.0.1'
+  host: '192.168.205.20'
   port: 6379
-  password: '123456'
+  password: ''
   db: 1
   pool:
     max-idle: 5
     idle-timeout: 14400
 rabbit:
-  host: '192.168.120.20'
+  host: '192.168.205.20'
   port: 5672
   username: 'guest'
   password: 'guest'

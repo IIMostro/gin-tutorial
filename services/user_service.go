@@ -2,7 +2,9 @@ package services
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"github.com/streadway/amqp"
 	"ilmostro.org/gin-tutorial/configuration"
 	"ilmostro.org/gin-tutorial/repository"
 )
@@ -16,10 +18,12 @@ type StudentService interface {
 }
 
 const (
-	StudentCacheKey = "students"
+	StudentsCacheKey = "students"
+	StudentCacheKey  = "student:%d"
 )
 
 var template = configuration.GetConnection()
+var channel = configuration.Channel
 
 type RedisUserService struct {
 }
@@ -43,10 +47,22 @@ func (r RedisUserService) GetStudent(id string) repository.Student {
 
 func (r RedisUserService) Save(student repository.Student) {
 
+	repository.Save(student)
+	cacheKey := fmt.Sprintf(StudentCacheKey, student.Id)
+	cacheValue, _ := json.Marshal(student)
+	_, _ = template.Do("SET", cacheKey, cacheValue)
+	_ = channel.Publish("go-tutorial-user",
+		"insert",
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        cacheValue,
+		})
 }
 
 func getStudentsByCache() []repository.Student {
-	value, err := redis.String(template.Do("GET", StudentCacheKey))
+	value, err := redis.String(template.Do("GET", StudentsCacheKey))
 	var students []repository.Student
 	if err != nil {
 		return []repository.Student{}
@@ -60,7 +76,7 @@ func setStudentCache(students []repository.Student) {
 	if err != nil {
 		return
 	}
-	_, _ = template.Do("SET", StudentCacheKey, marshal)
+	_, _ = template.Do("SET", StudentsCacheKey, marshal)
 }
 
 func getStudentsByDB() []repository.Student {

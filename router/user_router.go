@@ -2,8 +2,10 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"ilmostro.org/gin-tutorial/repository"
 	"ilmostro.org/gin-tutorial/result"
 	"ilmostro.org/gin-tutorial/services"
+	"log"
 )
 
 func UserInit(group *gin.RouterGroup) {
@@ -18,5 +20,15 @@ func UserInit(group *gin.RouterGroup) {
 		id := context.Param("id")
 		student := services.RedisUserService{}.GetStudent(id)
 		context.JSON(200, result.Success(student))
+	})
+
+	userRouter.POST("/", func(context *gin.Context) {
+		var student repository.Student
+		err := context.BindJSON(&student)
+		if err != nil {
+			log.Printf("bind student error!, cause: %f", err)
+			return
+		}
+		services.RedisUserService{}.Save(student)
 	})
 }

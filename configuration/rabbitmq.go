@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-var channel *amqp.Channel
+var Channel *amqp.Channel
 
 func getRabbitConnection() *amqp.Channel {
 
@@ -21,12 +21,10 @@ func getRabbitConnection() *amqp.Channel {
 	if err != nil {
 		log.Fatalf("get rabbitmq connection error %f", err)
 	}
-	channel = session
-	defer session.Close()
 	return session
 }
 
 func init() {
-	channel = getRabbitConnection()
+	Channel = getRabbitConnection()
 	log.Printf("rabbitmq connection success!")
 }

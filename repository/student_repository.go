@@ -50,3 +50,7 @@ func GetStudentById(Id string) Student {
 	connection.Where("id = ?", Id).First(&student)
 	return student
 }
+
+func Save(student Student) {
+	connection.Create(&student)
+}
