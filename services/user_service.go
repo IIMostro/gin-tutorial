@@ -7,9 +7,24 @@ import (
 	"ilmostro.org/gin-tutorial/repository"
 )
 
+type StudentService interface {
+	GetStudents() []repository.Student
+
+	GetStudent(id string) repository.Student
+
+	Save(student repository.Student)
+}
+
+const (
+	StudentCacheKey = "students"
+)
+
 var template = configuration.GetConnection()
 
-func GetStudents() []repository.Student {
+type RedisUserService struct {
+}
+
+func (r RedisUserService) GetStudents() []repository.Student {
 
 	var students []repository.Student
 	students = getStudentsByCache()
@@ -22,8 +37,16 @@ func GetStudents() []repository.Student {
 	return students
 }
 
+func (r RedisUserService) GetStudent(id string) repository.Student {
+	return repository.Student{}
+}
+
+func (r RedisUserService) Save(student repository.Student) {
+
+}
+
 func getStudentsByCache() []repository.Student {
-	value, err := redis.String(template.Do("GET", "students"))
+	value, err := redis.String(template.Do("GET", StudentCacheKey))
 	var students []repository.Student
 	if err != nil {
 		return []repository.Student{}
@@ -37,7 +60,7 @@ func setStudentCache(students []repository.Student) {
 	if err != nil {
 		return
 	}
-	_, _ = template.Do("SET", "students", marshal)
+	_, _ = template.Do("SET", StudentCacheKey, marshal)
 }
 
 func getStudentsByDB() []repository.Student {

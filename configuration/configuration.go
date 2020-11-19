@@ -35,6 +35,13 @@ type ApplicationProperties struct {
 			IdleTimeout time.Duration `yaml:"idle-timeout"`
 		}
 	}
+
+	Rabbit struct {
+		Host     string
+		Port     int
+		Username string
+		Password string
+	}
 }
 
 var Properties *ApplicationProperties

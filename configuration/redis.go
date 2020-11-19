@@ -16,7 +16,6 @@ func GetConnection() redis.Conn {
 
 func getClient() (redis.Conn, error) {
 	addr := fmt.Sprintf("%s:%d", Properties.Redis.Host, Properties.Redis.Port)
-	log.Printf("redis client url: %s", addr)
 	password := redis.DialPassword(Properties.Redis.Password)
 	database := redis.DialDatabase(Properties.Redis.DB)
 	return redis.Dial("tcp", addr, password, database)
@@ -34,4 +33,5 @@ func getPool() *redis.Pool {
 
 func init() {
 	pool = getPool()
+	log.Printf("redis connection success!")
 }

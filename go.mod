@@ -9,5 +9,6 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/jinzhu/gorm v1.9.16
+	github.com/streadway/amqp v1.0.0
 	gopkg.in/yaml.v2 v2.3.0
 )
