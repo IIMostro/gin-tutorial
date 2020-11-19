@@ -4,6 +4,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"time"
 )
 
 type ApplicationProperties struct {
@@ -21,6 +22,17 @@ type ApplicationProperties struct {
 		Pool         struct {
 			MaxConnection     int `yaml:"max-connection"`
 			MaxIdleConnection int `yaml:"max-idle-connection"`
+		}
+	}
+
+	Redis struct {
+		Host     string
+		Port     int
+		Password string
+		DB       int
+		Pool     struct {
+			MaxIdle     int           `yaml:"max-idle"`
+			IdleTimeout time.Duration `yaml:"idle-timeout"`
 		}
 	}
 }

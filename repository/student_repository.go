@@ -14,7 +14,7 @@ type Student struct {
 
 	Age int `json:"age"`
 
-	CreateTime string
+	CreateTime string `json:"create_time" gorm:"now()"`
 }
 
 func (Student) TableName() string {
