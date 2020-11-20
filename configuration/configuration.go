@@ -3,7 +3,6 @@ package configuration
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"time"
 )
 
@@ -50,11 +49,11 @@ func getProperties() *ApplicationProperties {
 	properties := new(ApplicationProperties)
 	file, err := ioutil.ReadFile("./configuration/application.yaml")
 	if err != nil {
-		log.Fatalf("read yaml error!, #%v", err)
+		panic("read application error!")
 	}
 	err = yaml.Unmarshal(file, properties)
 	if err != nil {
-		log.Fatalf("unmarshal yaml error!, #%v", err)
+		panic("read application error!")
 	}
 
 	return properties

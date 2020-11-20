@@ -18,8 +18,5 @@ func GetConnection() *gorm.DB {
 	}
 	open.DB().SetMaxIdleConns(Properties.Database.Pool.MaxIdleConnection)
 	open.DB().SetMaxOpenConns(Properties.Database.Pool.MaxConnection)
-	if err != nil {
-		log.Fatalf("get database connection error, %f", err)
-	}
 	return open
 }

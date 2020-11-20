@@ -17,5 +17,8 @@ func InitRouter(engine *gin.Engine) {
 	v1.GET("/properties", func(context *gin.Context) {
 		context.JSON(200, result.Success(properties))
 	})
+	v1.GET("/exception", func(context *gin.Context) {
+		panic(result.InnerException)
+	})
 	UserInit(v1)
 }
