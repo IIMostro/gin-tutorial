@@ -3,13 +3,10 @@ package configuration
 import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
-	"log"
 )
 
-var pool *redis.Pool
-
-func GetConnection() redis.Conn {
-	connection := pool.Get()
+func GetRedisClient() redis.Conn {
+	connection := getPool().Get()
 	return connection
 }
 
@@ -28,9 +25,4 @@ func getPool() *redis.Pool {
 			return getClient()
 		},
 	}
-}
-
-func init() {
-	pool = getPool()
-	log.Printf("redis connection success!")
 }

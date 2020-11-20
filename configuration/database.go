@@ -7,27 +7,19 @@ import (
 	"log"
 )
 
-var Connection *gorm.DB
-
-func getConnection() (*gorm.DB, error) {
+func GetConnection() *gorm.DB {
 
 	connectionUrl := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", Properties.Database.User, Properties.Database.Password,
 		Properties.Database.Server, Properties.Database.Port, Properties.Database.DatabaseName)
 
 	open, err := gorm.Open("mysql", connectionUrl)
 	if err != nil {
-		return nil, err
+		log.Fatalf("get database connection error, %f", err)
 	}
 	open.DB().SetMaxIdleConns(Properties.Database.Pool.MaxIdleConnection)
 	open.DB().SetMaxOpenConns(Properties.Database.Pool.MaxConnection)
-	return open, nil
-}
-
-func init() {
-	conn, err := getConnection()
 	if err != nil {
 		log.Fatalf("get database connection error, %f", err)
 	}
-	log.Printf("mysql connection success!")
-	Connection = conn
+	return open
 }

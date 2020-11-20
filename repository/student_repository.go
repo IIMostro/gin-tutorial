@@ -5,8 +5,6 @@ import (
 	"ilmostro.org/gin-tutorial/configuration"
 )
 
-var connection = configuration.Connection
-
 type Student struct {
 	Id int `json:"id" gorm:"AUTO_INCREMENT"`
 
@@ -32,6 +30,7 @@ func (s Student) Run() string {
 }
 
 func init() {
+	connection := configuration.GetConnection()
 	table := connection.HasTable("user")
 	if !table {
 		connection.CreateTable(&Student{})
@@ -40,17 +39,23 @@ func init() {
 }
 
 func GetAllUserFromDB() []Student {
+	connection := configuration.GetConnection()
+	defer connection.Close()
 	var users []Student
 	connection.Select("id, name, age, create_time").Find(&users)
 	return users
 }
 
 func GetStudentById(Id string) Student {
+	connection := configuration.GetConnection()
+	defer connection.Close()
 	student := Student{}
 	connection.Where("id = ?", Id).First(&student)
 	return student
 }
 
 func Save(student *Student) {
+	connection := configuration.GetConnection()
+	defer connection.Close()
 	connection.Create(&student)
 }

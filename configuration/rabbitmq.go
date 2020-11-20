@@ -6,9 +6,7 @@ import (
 	"log"
 )
 
-var Channel *amqp.Channel
-
-func getRabbitConnection() *amqp.Channel {
+func GetRabbitConnection() *amqp.Channel {
 
 	rabbit := Properties.Rabbit
 	url := fmt.Sprintf("amqp://%s:%s@%s:%d/", rabbit.Username, rabbit.Password, rabbit.Host, rabbit.Port)
@@ -22,9 +20,4 @@ func getRabbitConnection() *amqp.Channel {
 		log.Fatalf("get rabbitmq connection error %f", err)
 	}
 	return session
-}
-
-func init() {
-	Channel = getRabbitConnection()
-	log.Printf("rabbitmq connection success!")
 }

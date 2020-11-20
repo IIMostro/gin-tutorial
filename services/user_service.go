@@ -24,9 +24,6 @@ const (
 	StudentCacheKey  = "student:%d"
 )
 
-var template = configuration.GetConnection()
-var channel = configuration.Channel
-
 type RedisUserService struct {
 }
 
@@ -48,6 +45,10 @@ func (r RedisUserService) GetStudent(id string) repository.Student {
 }
 
 func (r RedisUserService) Save(student repository.Student) {
+	template := configuration.GetRedisClient()
+	channel := configuration.GetRabbitConnection()
+	defer template.Close()
+	defer channel.Close()
 	student.CreateTime = time.Now().String()
 	repository.Save(&student)
 	cacheKey := fmt.Sprintf(StudentCacheKey, student.Id)
@@ -67,6 +68,8 @@ func (r RedisUserService) Save(student repository.Student) {
 }
 
 func getStudentsByCache() []repository.Student {
+	template := configuration.GetRedisClient()
+	defer template.Close()
 	value, err := redis.String(template.Do("GET", StudentsCacheKey))
 	var students []repository.Student
 	if err != nil {
@@ -77,6 +80,8 @@ func getStudentsByCache() []repository.Student {
 }
 
 func setStudentCache(students []repository.Student) {
+	template := configuration.GetRedisClient()
+	defer template.Close()
 	marshal, err := json.Marshal(students)
 	if err != nil {
 		return

@@ -1,12 +1,13 @@
 package services
 
 import (
+	"ilmostro.org/gin-tutorial/configuration"
 	"log"
 )
 
 func init() {
 	log.Printf("rabbit connection aleardy!,start consumer")
-	consume, err := channel.Consume(
+	consume, err := configuration.GetRabbitConnection().Consume(
 		"insert-user-queue",
 		"",
 		true,
