@@ -3,14 +3,16 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	cRouter "ilmostro.org/gin-tutorial/router"
+	"log"
 )
 import "ilmostro.org/gin-tutorial/configuration"
 
-var properties = configuration.Properties
+var properties = configuration.Properties.Server
 
 func main() {
-	gin.SetMode(properties.Server.Mode)
+	gin.SetMode(properties.Mode)
 	router := gin.Default()
 	cRouter.InitRouter(router)
-	_ = router.Run(properties.Server.Port)
+	log.Printf("server start model: %s, port%s", properties.Mode, properties.Port)
+	_ = router.Run(properties.Port)
 }
