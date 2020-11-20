@@ -46,12 +46,12 @@ func GetAllUserFromDB() []Student {
 	return users
 }
 
-func GetStudentById(Id string) Student {
+func GetStudentById(Id string) *Student {
 	connection := configuration.GetConnection()
 	defer connection.Close()
 	student := Student{}
 	connection.Where("id = ?", Id).First(&student)
-	return student
+	return &student
 }
 
 func Save(student *Student) {

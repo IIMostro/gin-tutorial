@@ -14,7 +14,7 @@ import (
 type StudentService interface {
 	GetStudents() []repository.Student
 
-	GetStudent(id string) repository.Student
+	GetStudent(id string) *repository.Student
 
 	Save(student repository.Student)
 }
@@ -40,10 +40,10 @@ func (r RedisUserService) GetStudents() []repository.Student {
 	return students
 }
 
-func (r RedisUserService) GetStudent(id string) repository.Student {
-	var student repository.Student
+func (r RedisUserService) GetStudent(id string) *repository.Student {
+	var student *repository.Student
 	student = getStudentCache(id)
-	if student != (repository.Student{}) {
+	if student != nil {
 		return student
 	}
 	student = repository.GetStudentById(id)
@@ -51,18 +51,20 @@ func (r RedisUserService) GetStudent(id string) repository.Student {
 	return student
 }
 
-func getStudentCache(id string) repository.Student {
+func getStudentCache(id string) *repository.Student {
 	key := fmt.Sprintf("student:%s", id)
 	client := configuration.GetRedisClient()
 	defer client.Close()
 	value, _ := redis.String(client.Do("GET", key))
-
-	var student repository.Student
+	var student *repository.Student
+	if &value == nil || value == "" {
+		return student
+	}
 	_ = json.Unmarshal([]byte(value), &student)
 	return student
 }
 
-func setStudent(s repository.Student) {
+func setStudent(s *repository.Student) {
 	key := fmt.Sprintf("student:%d", s.Id)
 	client := configuration.GetRedisClient()
 	defer client.Close()
@@ -103,7 +105,7 @@ func getStudentsByCache() []repository.Student {
 	value, err := redis.String(template.Do("GET", StudentsCacheKey))
 	var students []repository.Student
 	if err != nil {
-		return []repository.Student{}
+		return nil
 	}
 	err = json.Unmarshal([]byte(value), &students)
 	return students
