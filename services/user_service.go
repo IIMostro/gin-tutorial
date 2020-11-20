@@ -41,7 +41,37 @@ func (r RedisUserService) GetStudents() []repository.Student {
 }
 
 func (r RedisUserService) GetStudent(id string) repository.Student {
-	return repository.Student{}
+	var student repository.Student
+	student = getStudentCache(id)
+	if student != (repository.Student{}) {
+		return student
+	}
+	student = repository.GetStudentById(id)
+	setStudent(student)
+	return student
+}
+
+func getStudentCache(id string) repository.Student {
+	key := fmt.Sprintf("student:%s", id)
+	client := configuration.GetRedisClient()
+	defer client.Close()
+	value, _ := redis.String(client.Do("GET", key))
+
+	var student repository.Student
+	_ = json.Unmarshal([]byte(value), &student)
+	return student
+}
+
+func setStudent(s repository.Student) {
+	key := fmt.Sprintf("student:%d", s.Id)
+	client := configuration.GetRedisClient()
+	defer client.Close()
+
+	marshal, err := json.Marshal(s)
+	if err != nil {
+		log.Printf("set redis cache error!, caluse: %f", err)
+	}
+	_, _ = client.Do("SET", key, marshal)
 }
 
 func (r RedisUserService) Save(student repository.Student) {
@@ -75,7 +105,7 @@ func getStudentsByCache() []repository.Student {
 	if err != nil {
 		return []repository.Student{}
 	}
-	err = json.Unmarshal([]byte(string(value)), &students)
+	err = json.Unmarshal([]byte(value), &students)
 	return students
 }
 
