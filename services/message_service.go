@@ -19,7 +19,6 @@ func init() {
 	if err != nil {
 		return
 	}
-
 	go func() {
 		for msg := range consume {
 			log.Printf(" consumer message: %s", msg.Body)

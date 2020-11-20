@@ -51,6 +51,6 @@ func GetStudentById(Id string) Student {
 	return student
 }
 
-func Save(student Student) {
+func Save(student *Student) {
 	connection.Create(&student)
 }

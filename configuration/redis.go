@@ -10,7 +10,6 @@ var pool *redis.Pool
 
 func GetConnection() redis.Conn {
 	connection := pool.Get()
-	defer connection.Close()
 	return connection
 }
 

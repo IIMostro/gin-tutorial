@@ -7,6 +7,8 @@ import (
 	"github.com/streadway/amqp"
 	"ilmostro.org/gin-tutorial/configuration"
 	"ilmostro.org/gin-tutorial/repository"
+	"log"
+	"time"
 )
 
 type StudentService interface {
@@ -46,11 +48,14 @@ func (r RedisUserService) GetStudent(id string) repository.Student {
 }
 
 func (r RedisUserService) Save(student repository.Student) {
-
-	repository.Save(student)
+	student.CreateTime = time.Now().String()
+	repository.Save(&student)
 	cacheKey := fmt.Sprintf(StudentCacheKey, student.Id)
 	cacheValue, _ := json.Marshal(student)
-	_, _ = template.Do("SET", cacheKey, cacheValue)
+	_, err := template.Do("SET", cacheKey, cacheValue)
+	if err != nil {
+		log.Printf("set redis cache error, cause: %f", err)
+	}
 	_ = channel.Publish("go-tutorial-user",
 		"insert",
 		false,
@@ -76,7 +81,10 @@ func setStudentCache(students []repository.Student) {
 	if err != nil {
 		return
 	}
-	_, _ = template.Do("SET", StudentsCacheKey, marshal)
+	_, err = template.Do("SET", StudentsCacheKey, marshal)
+	if err != nil {
+		log.Printf("put redis cache err, cause: %f", err)
+	}
 }
 
 func getStudentsByDB() []repository.Student {
