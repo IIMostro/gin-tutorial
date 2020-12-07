@@ -7,8 +7,12 @@ import (
 
 func init() {
 	log.Printf("rabbit connection aleardy!,start consumer")
+	consumer("insert-user-queue")
+}
+
+func consumer(queue string) {
 	consume, err := configuration.GetRabbitConnection().Consume(
-		"insert-user-queue",
+		queue,
 		"",
 		true,
 		false,
@@ -21,6 +25,7 @@ func init() {
 		return
 	}
 	go func() {
+		//防止阻塞主线程。
 		for msg := range consume {
 			log.Printf(" consumer message: %s", msg.Body)
 		}
