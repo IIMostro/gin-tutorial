@@ -3,7 +3,6 @@ package configuration
 import (
 	"fmt"
 	"github.com/streadway/amqp"
-	"log"
 )
 
 func GetRabbitConnection() *amqp.Channel {
@@ -12,12 +11,14 @@ func GetRabbitConnection() *amqp.Channel {
 	url := fmt.Sprintf("amqp://%s:%s@%s:%d/", rabbit.Username, rabbit.Password, rabbit.Host, rabbit.Port)
 	dial, err := amqp.Dial(url)
 	if err != nil {
-		log.Fatalf("get rabbitmq connection error %f", err)
+		err := fmt.Errorf("get rabbitmq connection error %w", err)
+		panic("get rabbitmq error, cause: " + err.Error())
 	}
 	session, err := dial.Channel()
 
 	if err != nil {
-		log.Fatalf("get rabbitmq connection error %f", err)
+		err := fmt.Errorf("get rabbitmq connection error %w", err)
+		panic("get rabbitmq error, cause: " + err.Error())
 	}
 	return session
 }

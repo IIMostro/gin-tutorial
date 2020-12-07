@@ -85,18 +85,31 @@ func (r RedisUserService) Save(student repository.Student) {
 	repository.Save(&student)
 	cacheKey := fmt.Sprintf(StudentCacheKey, student.Id)
 	cacheValue, _ := json.Marshal(student)
-	_, err := template.Do("SET", cacheKey, cacheValue)
-	if err != nil {
-		log.Printf("set redis cache error, cause: %f", err)
+
+	asyncErrorChan := make(chan error)
+
+	go func() {
+		_, err := template.Do("SET", cacheKey, cacheValue)
+		asyncErrorChan <- err
+	}()
+
+	go func() {
+		err := channel.Publish("go-tutorial-user",
+			"insert",
+			false,
+			false,
+			amqp.Publishing{
+				ContentType: "application/json",
+				Body:        cacheValue,
+			})
+		asyncErrorChan <- err
+	}()
+
+	errors := <-asyncErrorChan
+	if errors != nil {
+		errorMsg := fmt.Errorf("async save user error, cause:%w", errors)
+		panic(errorMsg)
 	}
-	_ = channel.Publish("go-tutorial-user",
-		"insert",
-		false,
-		false,
-		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        cacheValue,
-		})
 }
 
 func getStudentsByCache() []repository.Student {
