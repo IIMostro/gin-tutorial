@@ -25,85 +25,46 @@ const (
 )
 
 type RedisUserService struct {
+	connection redis.Conn
+}
+
+func NewRedisUserService() *RedisUserService {
+	return &RedisUserService{connection: configuration.GetRedisClient()}
 }
 
 func (r RedisUserService) GetStudents() []repository.Student {
-
 	var students []repository.Student
-	students = getStudentsByCache()
+	students = getStudentsByCache(r.connection)
 	if students != nil && len(students) > 0 {
 		return students
 	}
 	students = getStudentsByDB()
-	setStudentCache(students)
-
+	setStudentCache(students, r.connection)
 	return students
 }
 
 func (r RedisUserService) GetStudent(id string) *repository.Student {
 	var student *repository.Student
-	student = getStudentCache(id)
+	student = getStudentCache(id, r.connection)
 	if student != nil {
 		return student
 	}
 	student = repository.GetStudentById(id)
-	setStudent(student)
+	errors := make(chan error)
+	setStudent(student, r.connection, errors)
+	r.connection.Close()
 	return student
-}
-
-func getStudentCache(id string) *repository.Student {
-	key := fmt.Sprintf("student:%s", id)
-	client := configuration.GetRedisClient()
-	defer client.Close()
-	value, _ := redis.String(client.Do("GET", key))
-	var student *repository.Student
-	if &value == nil || value == "" {
-		return student
-	}
-	_ = json.Unmarshal([]byte(value), &student)
-	return student
-}
-
-func setStudent(s *repository.Student) {
-	key := fmt.Sprintf("student:%d", s.Id)
-	client := configuration.GetRedisClient()
-	defer client.Close()
-
-	marshal, err := json.Marshal(s)
-	if err != nil {
-		log.Printf("set redis cache error!, caluse: %f", err)
-	}
-	_, _ = client.Do("SET", key, marshal)
 }
 
 func (r RedisUserService) Save(student repository.Student) {
-	template := configuration.GetRedisClient()
-	channel := configuration.GetRabbitConnection()
-	defer template.Close()
-	defer channel.Close()
 	student.CreateTime = time.Now().String()
 	repository.Save(&student)
-	cacheKey := fmt.Sprintf(StudentCacheKey, student.Id)
 	cacheValue, _ := json.Marshal(student)
 
 	asyncErrorChan := make(chan error)
 
-	go func() {
-		_, err := template.Do("SET", cacheKey, cacheValue)
-		asyncErrorChan <- err
-	}()
-
-	go func() {
-		err := channel.Publish("go-tutorial-user",
-			"insert",
-			false,
-			false,
-			amqp.Publishing{
-				ContentType: "application/json",
-				Body:        cacheValue,
-			})
-		asyncErrorChan <- err
-	}()
+	go setStudent(&student, r.connection, asyncErrorChan)
+	go sendStudentMessage(cacheValue, asyncErrorChan)
 
 	errors := <-asyncErrorChan
 	if errors != nil {
@@ -112,10 +73,31 @@ func (r RedisUserService) Save(student repository.Student) {
 	}
 }
 
-func getStudentsByCache() []repository.Student {
-	template := configuration.GetRedisClient()
-	defer template.Close()
-	value, err := redis.String(template.Do("GET", StudentsCacheKey))
+func getStudentCache(id string, connection redis.Conn) *repository.Student {
+	key := fmt.Sprintf("student:%s", id)
+	value, _ := redis.String(connection.Do("GET", key))
+	var student *repository.Student
+	if &value == nil || value == "" {
+		return student
+	}
+	_ = json.Unmarshal([]byte(value), &student)
+	return student
+}
+
+func setStudent(s *repository.Student, connection redis.Conn, asyncErrorChan chan error) {
+	key := fmt.Sprintf(StudentCacheKey, s.Id)
+	marshal, err := json.Marshal(s)
+	if err != nil {
+		asyncErrorChan <- err
+		err := fmt.Errorf("set redis cache error!, caluse: %w", err)
+		panic(err)
+	}
+	_, err = connection.Do("SET", key, marshal)
+	asyncErrorChan <- err
+}
+
+func getStudentsByCache(connection redis.Conn) []repository.Student {
+	value, err := redis.String(connection.Do("GET", StudentsCacheKey))
 	var students []repository.Student
 	if err != nil {
 		return nil
@@ -124,14 +106,12 @@ func getStudentsByCache() []repository.Student {
 	return students
 }
 
-func setStudentCache(students []repository.Student) {
-	template := configuration.GetRedisClient()
-	defer template.Close()
+func setStudentCache(students []repository.Student, connection redis.Conn) {
 	marshal, err := json.Marshal(students)
 	if err != nil {
 		return
 	}
-	_, err = template.Do("SET", StudentsCacheKey, marshal)
+	_, err = connection.Do("SET", StudentsCacheKey, marshal)
 	if err != nil {
 		log.Printf("put redis cache err, cause: %f", err)
 	}
@@ -139,4 +119,18 @@ func setStudentCache(students []repository.Student) {
 
 func getStudentsByDB() []repository.Student {
 	return repository.GetAllUserFromDB()
+}
+
+func sendStudentMessage(cacheValue []byte, asyncErrorChan chan error) {
+	channel := configuration.GetRabbitConnection()
+	defer channel.Close()
+	err := channel.Publish("go-tutorial-user",
+		"insert",
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        cacheValue,
+		})
+	asyncErrorChan <- err
 }

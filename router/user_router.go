@@ -13,12 +13,12 @@ func UserInit(group *gin.RouterGroup) {
 	userRouter := group.Group("/user")
 
 	userRouter.GET("/", func(context *gin.Context) {
-		students := services.RedisUserService{}.GetStudents()
+		students := services.NewRedisUserService().GetStudents()
 		context.JSON(200, result.Success(students))
 	})
 	userRouter.GET("/:id", func(context *gin.Context) {
 		id := context.Param("id")
-		student := services.RedisUserService{}.GetStudent(id)
+		student := services.NewRedisUserService().GetStudent(id)
 		context.JSON(200, result.Success(student))
 	})
 
@@ -29,6 +29,6 @@ func UserInit(group *gin.RouterGroup) {
 			log.Printf("bind student error!, cause: %f", err)
 			return
 		}
-		services.RedisUserService{}.Save(student)
+		services.NewRedisUserService().Save(student)
 	})
 }
